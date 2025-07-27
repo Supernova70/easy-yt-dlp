@@ -1,73 +1,146 @@
 #!/bin/bash
+
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# ASCII Art
 echo "
  /\_/\  
 ( o.o ) 
  > ^ <
 "
-# Define the character to use for the line
-line_character="-"
 
-# Define the length of the line
-line_length=100
+# Welcome message
+echo "======================================================================================================"
+echo -e "${GREEN}Welcome User!${NC}"
+echo "This tool will download music from URLs in music.txt file in the best audio format."
+echo "Songs will be saved to your main Music folder (e.g., ~/Music/July-2025)"
+echo "======================================================================================================"
 
-# Print the line
-printf "%s\n" "$(printf "%${line_length}s" "$line_character" | tr ' ' "$line_character")"
-
-# Printing the welcome message for the user
-echo "Welcome User"
-echo "This tool will make your life easier and help you to automate the downloading from different platforms.\n"
-read -p "Download through file(F) or single link(L)  F/L :"  response_file_or_link
-response_file_or_link=$(echo "$response_file_or_link" | tr '[:lower:]' '[:upper:]')
-if [ "$response_file_or_link" == "F" ]; then
-    count=1
-    while read -r music_link; do
-        echo -e "${RED}Music $count Downloading"
-        yt-dlp --extract-audio --audio-format mp3 --audio-quality 0 "$music_link"
-        count=$((count+1))
-    done < music.txt
-elif [[ "$response_file_or_link" == "L" ]]; then
-# Prompt the user to enter the YouTube URL
-  read -p "Please enter the YouTube URL: " youtube_url
-# Check if the URL contains "list"
-  if [[ $youtube_url == *"list"* ]]; then
-    # if url contain list ask user for other things
-    echo "Your link is of a playlist!"
-    echo "Do you want to continue downloading the whole playlist? (Y/N)"
+# Create monthly folder in the user's main Music directory
+create_monthly_folder() {
+    local month_year=$(date +"%B-%Y")  # e.g., "July-2025"
+    # Use $HOME/Music to target the main Music folder
+    local folder_path="$HOME/Music/$month_year"
     
-    # Read the user's response and convert to uppercase
-    read response
-    response=$(echo "$response" | tr '[:lower:]' '[:upper:]')
-
-    # Check if the response is valid
-    if [[ "$response" == "Y" ]]; then 
-        #then go with downloading the whole playlist
-        echo "do u want in video formate or mp3 (V/M)" 
-        read formate
-        formate =$(echo "formate" | tr '[:lower:]' '[:upper:]')
-        if [[ "$formate" == "V" ]]; then
-        # excute command that will download in video formate
-        yt-dlp --format "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]" "$youtube_url"
-        else 
-        #excute command this to download in this formate
-        yt-dlp --extract-audio --audio-format mp3 --audio-quality 0 "$youtube_url"
-        # Perform actions to download the whole playlist
-        fi
-    elif [[ "$response" == "N" ]]; then
-        cleaned_url=$(echo "$youtube_url" | sed 's/\&list=.*/ /')
-        echo "Downloading your song"
-        echo "$cleaned_url"
-    
-        yt-dlp  --extract-audio --audio-format mp3 --audio-quality 0 "$cleaned_url"
-        # Perform actions for not downloading the playlist
-    else
-        echo "Invalid input. Please enter Y or N."
+    if [[ ! -d "$folder_path" ]]; then
+        mkdir -p "$folder_path"
+        echo -e "${BLUE}Created folder: $folder_path${NC}" >&2
     fi
-else
-    # If the URL does not contain "list", execute command B
-    yt-dlp --extract-audio --audio-format mp3 --audio-quality 0 "$youtube_url"
-    # Place your command B here
+    
+    echo "$folder_path"
+}
+
+# Progress bar function
+show_progress() {
+    local current=$1
+    local total=$2
+    local width=50
+    local percentage=$((current * 100 / total))
+    local completed=$((current * width / total))
+    
+    printf "\r${BLUE}Progress: [${NC}"
+    for ((i=0; i<completed; i++)); do printf "█"; done
+    for ((i=completed; i<width; i++)); do printf "░"; done
+    printf "${BLUE}] ${percentage}%% (${current}/${total})${NC}"
+    
+    if [[ $current -eq $total ]]; then
+        echo ""
+    fi
+}
+
+# Function to download a single URL
+download_url() {
+    local url="$1"
+    local count="$2"
+    local total="$3"
+    local folder_path="$4"
+    
+    echo ""
+    echo -e "${YELLOW}Processing Music $count: ${NC}"
+    echo -e "${YELLOW}URL: $url${NC}"
+    
+    # Check if URL contains playlist
+    if [[ "$url" == *"list="* ]]; then
+        echo -e "${RED}🎵 Playlist detected!${NC}"
+        echo "Do you want to download the whole playlist or just the single song?"
+        echo "P = Playlist | S = Single song"
+        
+        # Keep asking until valid input
+        while true; do
+            read -p "Enter choice (P/S): " choice < /dev/tty
+            choice=$(echo "$choice" | tr '[:lower:]' '[:upper:]')
+            
+            if [[ "$choice" == "P" ]]; then
+                echo -e "${GREEN}📦 Downloading whole playlist...${NC}"
+                yt-dlp --extract-audio --audio-format mp3 --audio-quality 0 \
+                       --output "$folder_path/%(title)s.mp3" \
+                       --quiet --progress --newline "$url"
+                break
+            elif [[ "$choice" == "S" ]]; then
+                # Remove playlist parameter to get single video
+                cleaned_url=$(echo "$url" | sed 's/[&?]list=[^&]*//g')
+                echo -e "${GREEN}🎵 Downloading single song...${NC}"
+                yt-dlp --extract-audio --audio-format mp3 --audio-quality 0 \
+                       --output "$folder_path/%(title)s.mp3" \
+                       --quiet --progress --newline "$cleaned_url"
+                break
+            else
+                echo -e "${RED}❌ Invalid choice. Please enter P or S.${NC}"
+            fi
+        done
+    else
+        # Regular single video URL
+        echo -e "${GREEN}🎵 Downloading single song...${NC}"
+        yt-dlp --extract-audio --audio-format mp3 --audio-quality 0 \
+               --output "$folder_path/%(title)s.mp3" \
+               --quiet --progress --newline "$url"
+    fi
+    
+    show_progress "$count" "$total"
+}
+
+# Check if music.txt exists
+if [[ ! -f "music.txt" ]]; then
+    echo -e "${RED}❌ Error: music.txt file not found!${NC}"
+    exit 1
 fi
+
+# Create monthly folder
+folder_path=$(create_monthly_folder)
+
+# Count total URLs for progress tracking
+total_urls=0
+while IFS= read -r music_link; do
+    if [[ -n "$music_link" && "$music_link" != "" && ! "$music_link" =~ ^[[:space:]]*# ]]; then
+        total_urls=$((total_urls+1))
+    fi
+done < music.txt
+
+if [[ $total_urls -eq 0 ]]; then
+    echo -e "${RED}❌ No valid URLs found in music.txt${NC}"
+    exit 1
 fi
+
+echo -e "${BLUE}📊 Found $total_urls URLs to process${NC}"
+echo -e "${BLUE}💾 Downloads will be saved to: $folder_path${NC}"
+echo ""
+
+# Main processing loop
+count=0
+while IFS= read -r music_link; do
+    # Skip empty lines and lines starting with #
+    if [[ -n "$music_link" && "$music_link" != "" && ! "$music_link" =~ ^[[:space:]]*# ]]; then
+        count=$((count+1))
+        download_url "$music_link" "$count" "$total_urls" "$folder_path"
+        echo "----------------------------------------"
+    fi
+done < music.txt
+
+echo ""
+echo -e "${GREEN}🎉 All downloads completed!${NC}"
+echo -e "${GREEN}📁 Files saved in: $folder_path${NC}"
