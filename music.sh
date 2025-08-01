@@ -1,5 +1,23 @@
 #!/bin/bash
 
+
+# --- Auto-detect yt-dlp ---
+YTDLP_BIN="yt-dlp"
+if ! command -v yt-dlp >/dev/null 2>&1; then
+    echo -e "\033[0;33m[INFO]\033[0m yt-dlp not found in PATH. Attempting to download the latest version..."
+    YTDLP_BIN="./yt-dlp"
+    if [ ! -f "$YTDLP_BIN" ]; then
+        wget -O "$YTDLP_BIN" https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp && chmod +x "$YTDLP_BIN"
+        if [ $? -ne 0 ]; then
+            echo -e "\033[0;31m[ERROR]\033[0m Failed to download yt-dlp. Please install it manually."
+            exit 1
+        fi
+        echo -e "\033[0;32m[SUCCESS]\033[0m yt-dlp downloaded locally."
+    fi
+else
+    YTDLP_BIN="yt-dlp"
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -77,7 +95,7 @@ download_url() {
             
             if [[ "$choice" == "P" ]]; then
                 echo -e "${GREEN}📦 Downloading whole playlist...${NC}"
-                yt-dlp --extract-audio --audio-format mp3 --audio-quality 0 \
+                "$YTDLP_BIN" --extract-audio --audio-format mp3 --audio-quality 0 \
                        --output "$folder_path/%(title)s.mp3" \
                        --quiet --progress --newline "$url"
                 break
@@ -85,7 +103,7 @@ download_url() {
                 # Remove playlist parameter to get single video
                 cleaned_url=$(echo "$url" | sed 's/[&?]list=[^&]*//g')
                 echo -e "${GREEN}🎵 Downloading single song...${NC}"
-                yt-dlp --extract-audio --audio-format mp3 --audio-quality 0 \
+                "$YTDLP_BIN" --extract-audio --audio-format mp3 --audio-quality 0 \
                        --output "$folder_path/%(title)s.mp3" \
                        --quiet --progress --newline "$cleaned_url"
                 break
@@ -96,7 +114,7 @@ download_url() {
     else
         # Regular single video URL
         echo -e "${GREEN}🎵 Downloading single song...${NC}"
-        yt-dlp --extract-audio --audio-format mp3 --audio-quality 0 \
+        "$YTDLP_BIN" --extract-audio --audio-format mp3 --audio-quality 0 \
                --output "$folder_path/%(title)s.mp3" \
                --quiet --progress --newline "$url"
     fi
