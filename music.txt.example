@@ -1,0 +1,16 @@
+# Example music.txt file
+# Lines starting with # are comments and will be ignored
+# Add YouTube or other supported platform URLs, one per line
+
+# Single songs
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+https://www.youtube.com/watch?v=oHg5SJYRHA0
+
+# Playlists (will prompt for playlist vs single song)
+https://www.youtube.com/playlist?list=PLExample123
+
+# SoundCloud tracks
+https://soundcloud.com/example-artist/example-track
+
+# Other supported platforms work too
+https://vimeo.com/123456789

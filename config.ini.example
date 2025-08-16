@@ -1,0 +1,30 @@
+# Enhanced Easy YT-DLP Configuration File
+# Edit these values to customize your download experience
+
+# Audio Settings
+AUDIO_FORMAT="mp3"          # mp3, m4a, flac, opus, wav
+AUDIO_QUALITY="0"           # 0 (best), 1-9 (worst), or bitrate like 320K
+VIDEO_FORMAT="mp4"          # mp4, webm, mkv, avi
+
+# Organization Settings  
+ORGANIZATION="monthly"      # monthly, artist, album, year, flat
+NAMING_PATTERN="%(artist)s - %(title)s"  # %(title)s, %(artist)s - %(title)s, %(album)s/%(title)s
+DOWNLOAD_THUMBNAILS="false" # true/false
+DOWNLOAD_SUBTITLES="false"  # true/false
+
+# Performance Settings
+MAX_RETRIES="3"             # Number of retry attempts for failed downloads
+PARALLEL_DOWNLOADS="1"      # Number of simultaneous downloads (1-5)
+MAX_SPEED=""                # Max download speed (e.g., 1M, 500K, leave empty for unlimited)
+
+# Advanced Settings
+PROXY_URL=""                # Proxy URL if needed
+BACKUP_ENABLED="false"      # Enable automatic backup to cloud storage
+NOTIFICATION_ENABLED="true" # Desktop notifications
+BATCH_MODE="false"          # Skip all prompts for playlists
+DUPLICATE_CHECK="true"      # Check for duplicates before downloading
+
+# Metadata Settings
+AUTO_TAG="true"             # Automatically tag MP3 files with metadata
+FETCH_LYRICS="false"        # Download lyrics if available
+FETCH_ALBUM_ART="true"      # Download album artwork
