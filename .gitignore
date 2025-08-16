@@ -1,0 +1,90 @@
+# Downloaded yt-dlp binary
+yt-dlp
+yt-dlp.exe
+
+# User configuration files
+config.ini
+
+# Log files
+download_history.log
+error.log
+*.log
+
+# Downloaded music files
+*.mp3
+*.m4a
+*.flac
+*.opus
+*.wav
+*.mp4
+*.webm
+*.mkv
+*.avi
+
+# User input files (keep examples, ignore actual user data)
+music.txt
+music.csv
+
+# Thumbnail files
+*.jpg
+*.jpeg
+*.png
+*.webp
+
+# Subtitle files
+*.vtt
+*.srt
+*.ass
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Python cache (if using Python tools)
+__pycache__/
+*.pyc
+*.pyo
+
+# Node.js (if using any npm tools)
+node_modules/
+package-lock.json
+
+# OS generated files
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage reports (if running tests)
+coverage/
+*.lcov
+
+# Dependency directories
+vendor/
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# User-specific data directories
+Downloads/
+Music/
+output/
+temp/
